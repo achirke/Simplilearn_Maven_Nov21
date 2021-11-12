@@ -3,12 +3,18 @@ package test;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.openqa.selenium.Platform;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeMethod;
@@ -26,6 +32,8 @@ public class Baseclass {
 
 	XSSFWorkbook wbook;
     XSSFSheet sheet;
+    
+    DesiredCapabilities cap = new DesiredCapabilities();
 	
 	@BeforeTest
 	public void ReportSetup() throws IOException {
@@ -36,12 +44,12 @@ public class Baseclass {
 	}
 	
 	@BeforeMethod
-	public void setup() {
+	public void setup() throws IOException {
 		
 
 		// TODO Auto-generated method stub
 		System.setProperty("webdriver.chrome.driver", "chromedriver");
-		driver = new ChromeDriver();
+		setDriver();
 		driver.get("https://www.simplilearn.com/");
 		//System.setProperty("webdriver.gecko.driver", "geckodriver");
 		//WebDriver driver1 = new GeckoDriverInfo();
@@ -56,9 +64,36 @@ public class Baseclass {
 	}
 	
 	@AfterTest
-	public void ReportTearDown() {
+	public void ReportTearDown() throws IOException {
+		wbook.close();
 		report.flush();
 		report.close();
 	}
+	
+public void setDriver() throws IOException {
+        
+        InputStream input = new FileInputStream("config.properties");
+        
+        Properties prop = new Properties();
+        
+        prop.load(input);
+        
+        String BrowserName = prop.getProperty("browser");
+        
+        if(BrowserName.equals("chrome")) {
+            
+            System.setProperty("webdriver.chrome.driver", "chromedriver");
+            driver = new ChromeDriver();
+            
+        }else{
+            
+            cap.setPlatform(Platform.LINUX);
+            cap.setBrowserName("chrome");
+            URL url = new URL("http://172.17.0.1:4444/wd/hub");
+            
+            //WebDriver driver1 = new ChromeDriver();
+            driver = new RemoteWebDriver(url,cap);
+        }
 
+}
 }
